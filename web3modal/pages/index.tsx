@@ -166,7 +166,7 @@ export const Home = (): JSX.Element => {
     }
   }, [provider, disconnect])
 
-  const chainData = getChainData(chainId)
+
 
   const sign = async() => {
     // configure web3, e.g. with web3Modal or in your case WalletConnect
