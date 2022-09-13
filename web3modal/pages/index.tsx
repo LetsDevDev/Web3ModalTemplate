@@ -4,7 +4,7 @@
 
 interface homeProps {
   isConnected: boolean
-  setCreateSignature:(message:string) => void
+  sign:(message:string) => string
   setConnectWallet: (connect: boolean) => void
   setDisconnectWallet: (disconnect: boolean) => void
 }
@@ -17,11 +17,16 @@ const styles = {
     margin:"5em",
   },
 };
-export const Home : React.FC<homeProps> = ({setConnectWallet, isConnected, setCreateSignature, setDisconnectWallet}: homeProps) => {
+export const Home : React.FC<homeProps> = ({setConnectWallet, 
+  isConnected, sign, setDisconnectWallet}: homeProps) => {
 
+
+const handleSign = async () => {
+  var signature = await sign(Math.random().toString());
+  alert("Signature: " + signature);
+}
   return (
     <div >
-
 {isConnected ?
 <>
   <button
@@ -29,7 +34,7 @@ export const Home : React.FC<homeProps> = ({setConnectWallet, isConnected, setCr
 onClick={()=> setDisconnectWallet(true)}>Disconnect wallet</button>
 <button
 style={styles.container}
-onClick={()=> setCreateSignature(Math.random().toString())}>Create signature</button>
+onClick={()=> handleSign()}>Create signature</button>
 </>
 :
 <button

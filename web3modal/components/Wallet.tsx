@@ -1,11 +1,8 @@
 
-import { providers, ethers } from 'ethers'
+import { providers } from 'ethers'
 import { useCallback, useEffect, useReducer } from 'react'
 
-import Web3Modal from 'web3modal'
 
-import WalletLink from 'walletlink'
-import WalletConnectProvider from '@walletconnect/web3-provider'
 export interface IAssetData {
     symbol: string
     name: string
@@ -363,46 +360,6 @@ const supportedChains: IChainData[] = [
 //This is the infura API key
 const InfuraId = '374b34767f8745b9bb2d7d77e97d3454';
 
-export const providerOptions = {
-    walletconnect: {
-      package: WalletConnectProvider, // required
-      options: {
-        infuraId: InfuraId, // required
-      },
-    },
-    'custom-walletlink': {
-      display: {
-        logo: 'https://play-lh.googleusercontent.com/PjoJoG27miSglVBXoXrxBSLveV6e3EeBPpNY55aiUUBM9Q1RCETKCOqdOkX2ZydqVf0',
-        name: 'Coinbase',
-        description: 'Connect to Coinbase Wallet (not Coinbase App)',
-      },
-      options: {
-        appName: 'Coinbase', // Your app name
-        networkUrl: `https://mainnet.infura.io/v3/${InfuraId}`,
-        chainId: 1,
-      },
-      package: WalletLink,
-      connector: async (_: any, options: any) => {
-        const { appName, networkUrl, chainId } = options
-        const walletLink = new WalletLink({
-          appName,
-        })
-        const provider = walletLink.makeWeb3Provider(networkUrl, chainId)
-        await provider.enable()
-        return provider
-      },
-    },
-  }
-  
-
-let web3Modal: Web3Modal;
-if (typeof window !== 'undefined') {
-        web3Modal = new Web3Modal({
-            network: 'mainnet', // optional
-            cacheProvider: true,
-            providerOptions, // required
-          })
-}
 
 type StateType = {
   provider?: any
@@ -497,21 +454,23 @@ export function getChainData(chainId?: number): IChainData {
  interface walletProps {
     setIsConnected: (isConnected: boolean) => void
     isConnected: boolean
-    createSignature: string
     setConnectWallet: (connect: boolean) => void
     connectWallet: boolean
     disconnectWallet: boolean
     setDisconnectWallet: (disconnect: boolean) => void
+    setAddress: (address: string) => void
+    web3Modal: any
   }
 
 const Wallet : React.FC<walletProps> = ({
-    createSignature, 
     setIsConnected, 
     isConnected,
     setConnectWallet, 
     connectWallet, 
     disconnectWallet, 
-    setDisconnectWallet
+    setDisconnectWallet,
+    setAddress,
+    web3Modal
 
 }: walletProps) => {
     const [state, dispatch] = useReducer(reducer, initialState)
@@ -529,7 +488,7 @@ const Wallet : React.FC<walletProps> = ({
   
       const signer = web3Provider.getSigner()
       const address = await signer.getAddress()
-  
+      setAddress(address.toLowerCase());
       const network = await web3Provider.getNetwork()
   
       dispatch({
@@ -552,6 +511,7 @@ const Wallet : React.FC<walletProps> = ({
           type: 'RESET_WEB3_PROVIDER',
         })
         setIsConnected(false);
+        setAddress("");
       },
       [provider]
     )
@@ -575,15 +535,7 @@ useEffect(() => {
 
 }, [disconnectWallet])
 
-         useEffect(() => {
-         const x = async () => {
-            if(createSignature.length > 0){
-                await sign(createSignature)
-            }
-             }
-            x()
-            }, [createSignature])
-
+      
 
 
     // Auto connect to the cached provider
@@ -639,32 +591,7 @@ useEffect(() => {
   
   
   
-  const sign = async(toSign:string) => {
-    if(isConnected)
-    {
 
-    // configure web3, e.g. with web3Modal or in your case WalletConnect
-  const web3 = await web3Modal.connect();
-  
-  const provider = new providers.Web3Provider(web3);
-  const signer = provider.getSigner()
-  const address = await signer.getAddress();
-
-  let signedMessage;
-  if (web3.wc) {
-      signedMessage = await provider.send(
-          'personal_sign',
-          [ ethers.utils.hexlify(ethers.utils.toUtf8Bytes(toSign)), address.toLowerCase() ]
-      );
-  }
-  else { 
-      signedMessage = await signer.signMessage(toSign)
-  }
-  
-  const verified = ethers.utils.verifyMessage(toSign, signedMessage);
-  alert("signing successful from address: " + verified);
-}
-    }
     return(
        <>
          <p>Connected Address: {address}</p></>
