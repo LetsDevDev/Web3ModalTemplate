@@ -1,25 +1,41 @@
 
 
-import Wallet from '../components/Wallet'
-import { useEffect, useState } from 'react'
 
 
 interface homeProps {
   isConnected: boolean
   setCreateSignature:(message:string) => void
+  setConnectWallet: (connect: boolean) => void
+  setDisconnectWallet: (disconnect: boolean) => void
 }
-export const Home : React.FC<homeProps> = ({isConnected, setCreateSignature}: homeProps) => {
 
-console.log(isConnected)
+const styles = {
+  container: {
+    fontWeight: "bold",
+    height:"10em",
+    width:"10em",
+    margin:"5em",
+  },
+};
+export const Home : React.FC<homeProps> = ({setConnectWallet, isConnected, setCreateSignature, setDisconnectWallet}: homeProps) => {
 
   return (
     <div >
-      
-<h1>Hello</h1>
+
+{isConnected ?
+<>
+  <button
+  style={styles.container}
+onClick={()=> setDisconnectWallet(true)}>Disconnect wallet</button>
 <button
+style={styles.container}
 onClick={()=> setCreateSignature(Math.random().toString())}>Create signature</button>
-
-
+</>
+:
+<button
+style={styles.container}
+onClick={()=> setConnectWallet(true)}>Connect wallet</button>
+}
 
     </div>
   )

@@ -7,11 +7,13 @@ import Web3Modal from 'web3modal'
 
 let web3Modal: Web3Modal;
 if (typeof window !== 'undefined') {
-  web3Modal = new Web3Modal({
-    network: 'mainnet', // optional
-    cacheProvider: true,
-    providerOptions, // required
-  })
+        web3Modal = new Web3Modal({
+            network: 'mainnet', // optional
+            cacheProvider: true,
+            providerOptions, // required
+          })
+  
+
 }
 
 type StateType = {
@@ -73,18 +75,32 @@ function reducer(state: StateType, action: ActionType): StateType {
     default:
       throw new Error()
   }
+  
 }
 
  interface walletProps {
+    setIsConnected: (isConnected: boolean) => void
+    isConnected: boolean
     createSignature: string
-    setIsConnected: (bool: boolean) => void
+    setConnectWallet: (connect: boolean) => void
+    connectWallet: boolean
+    disconnectWallet: boolean
+    setDisconnectWallet: (disconnect: boolean) => void
   }
 
-const Wallet : React.FC<walletProps> = ({createSignature, setIsConnected}: walletProps) => {
+const Wallet : React.FC<walletProps> = ({
+    createSignature, 
+    setIsConnected, 
+    isConnected,
+    setConnectWallet, 
+    connectWallet, 
+    disconnectWallet, 
+    setDisconnectWallet
+
+}: walletProps) => {
     const [state, dispatch] = useReducer(reducer, initialState)
-    const [createSignture, setCreateSignature] = useState<string>()
     const { provider, web3Provider, address, chainId } = state
-  
+ 
     const connect = useCallback(async function () {
       // This is the initial `provider` that is returned when
       // using web3Modal to connect. Can be MetaMask or WalletConnect.
@@ -123,18 +139,29 @@ const Wallet : React.FC<walletProps> = ({createSignature, setIsConnected}: walle
       },
       [provider]
     )
-  
-
-
     
+    useEffect(() => {
+    if(connectWallet)
+    {
+        connect();
+        setConnectWallet(false);
+    }
 
-        //Logic sent by parent
-       //Async useeffect snippet
+}, [connectWallet])
+
+ 
+useEffect(() => {
+    if(disconnectWallet)
+    {
+        disconnect();
+        setDisconnectWallet(false);
+    }
+
+}, [disconnectWallet])
+
          useEffect(() => {
          const x = async () => {
             if(createSignature.length > 0){
-                alert("here")
-                setCreateSignature(createSignature)
                 await sign(createSignature)
             }
              }
@@ -179,6 +206,9 @@ const Wallet : React.FC<walletProps> = ({createSignature, setIsConnected}: walle
         provider.on('accountsChanged', handleAccountsChanged)
         provider.on('chainChanged', handleChainChanged)
         provider.on('disconnect', handleDisconnect)
+        provider.on("modal_close", (error: { code: number; message: string }) => {
+            console.log(error);
+          });
   
         // Subscription Cleanup
         return () => {
@@ -193,7 +223,10 @@ const Wallet : React.FC<walletProps> = ({createSignature, setIsConnected}: walle
   
   
   
-    const sign = async(toSign:string) => {
+  const sign = async(toSign:string) => {
+    if(isConnected)
+    {
+
     // configure web3, e.g. with web3Modal or in your case WalletConnect
   const web3 = await web3Modal.connect();
   
@@ -209,57 +242,18 @@ const Wallet : React.FC<walletProps> = ({createSignature, setIsConnected}: walle
       );
   }
   else { 
-    console.log(createSignture)
-    console.log("here")
       signedMessage = await signer.signMessage(toSign)
   }
   
   const verified = ethers.utils.verifyMessage(toSign, signedMessage);
   alert("signing successful from address: " + verified);
+}
     }
-
     return(
        <>
-        {web3Provider ? (
-            <>  
-          <button className="button" type="button" onClick={() => disconnect()}>
-            Disconnect
-          </button>
-          <p>Connected Address: {address}</p>
-
-          </>
-        ) : (
-          <>     
-           <button className="button" type="button" onClick={connect}>
-            Connect
-          </button>
-       
-          </>
-
-        )}</>
+         <p>Connected Address: {address}</p></>
     )
 }
 
 export default Wallet;
 
-
-// {web3Provider ? (
-//     <>  
-//   <button className="button" type="button" onClick={disconnect}>
-//     Disconnect
-//   </button>
-//   <button className="button" type="button" onClick={sign}>
-//     Sign message
-//   </button>
-//   <p>Connected Address: {address}</p>
-
-//   </>
-// ) : (
-//   <>     
-//    <button className="button" type="button" onClick={connect}>
-//     Connect
-//   </button>
-
-//   </>
-
-// )}
