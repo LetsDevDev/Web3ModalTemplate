@@ -12,10 +12,6 @@ function MyApp({ Component, pageProps }) {
   const [disconnectWallet, setDisconnectWallet] = useState(false);
 
 
- useEffect(() => {
-       console.log("isConnected", isConnected)
-   }, [isConnected]);
-
   return(
     <>  
       {/* <TopProgressBar /> */}
@@ -30,7 +26,11 @@ function MyApp({ Component, pageProps }) {
 
    
    />
-      <Component {...pageProps} isConnected={isConnected} setCreateSignature={setCreateSignature} setConnectWallet={setConnectWallet} setDisconnectWallet={setDisconnectWallet} />
+      <Component {...pageProps} 
+      isConnected={isConnected} 
+      setCreateSignature={setCreateSignature} 
+      setConnectWallet={setConnectWallet} 
+      setDisconnectWallet={setDisconnectWallet} />
       </>
   );
 }

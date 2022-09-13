@@ -1,9 +1,399 @@
 
 import { providers, ethers } from 'ethers'
-import { useCallback, useEffect, useReducer, useState } from 'react'
-import { providerOptions } from '../utils/providerOptions'
+import { useCallback, useEffect, useReducer } from 'react'
+
 import Web3Modal from 'web3modal'
 
+import WalletLink from 'walletlink'
+import WalletConnectProvider from '@walletconnect/web3-provider'
+export interface IAssetData {
+    symbol: string
+    name: string
+    decimals: string
+    contractAddress: string
+    balance?: string
+  }
+  
+  export interface IChainData {
+    name: string
+    short_name: string
+    chain: string
+    network: string
+    chain_id: number
+    network_id: number
+    rpc_url: string
+    native_currency: IAssetData
+  }
+  
+  export interface ITxData {
+    from: string
+    to: string
+    nonce: string
+    gasPrice: string
+    gasLimit: string
+    value: string
+    data: string
+  }
+  
+  export interface IBlockScoutTx {
+    value: string
+    txreceipt_status: string
+    transactionIndex: string
+    to: string
+    timeStamp: string
+    nonce: string
+    isError: string
+    input: string
+    hash: string
+    gasUsed: string
+    gasPrice: string
+    gas: string
+    from: string
+    cumulativeGasUsed: string
+    contractAddress: string
+    confirmations: string
+    blockNumber: string
+    blockHash: string
+  }
+  
+  export interface IBlockScoutTokenTx {
+    value: string
+    transactionIndex: string
+    tokenSymbol: string
+    tokenName: string
+    tokenDecimal: string
+    to: string
+    timeStamp: string
+    nonce: string
+    input: string
+    hash: string
+    gasUsed: string
+    gasPrice: string
+    gas: string
+    from: string
+    cumulativeGasUsed: string
+    contractAddress: string
+    confirmations: string
+    blockNumber: string
+    blockHash: string
+  }
+  
+  export interface IParsedTx {
+    timestamp: string
+    hash: string
+    from: string
+    to: string
+    nonce: string
+    gasPrice: string
+    gasUsed: string
+    fee: string
+    value: string
+    input: string
+    error: boolean
+    asset: IAssetData
+    operations: ITxOperation[]
+  }
+  
+  export interface ITxOperation {
+    asset: IAssetData
+    value: string
+    from: string
+    to: string
+    functionName: string
+  }
+  
+  export interface IGasPricesResponse {
+    fastWait: number
+    avgWait: number
+    blockNum: number
+    fast: number
+    fastest: number
+    fastestWait: number
+    safeLow: number
+    safeLowWait: number
+    speed: number
+    block_time: number
+    average: number
+  }
+  
+  export interface IGasPrice {
+    time: number
+    price: number
+  }
+  
+  export interface IGasPrices {
+    timestamp: number
+    slow: IGasPrice
+    average: IGasPrice
+    fast: IGasPrice
+  }
+  
+  export interface IMethodArgument {
+    type: string
+  }
+  
+  export interface IMethod {
+    signature: string
+    name: string
+    args: IMethodArgument[]
+  }
+  
+  export interface IBoxImage {
+    '@type': string
+    contentUrl: {
+      [label: string]: string
+    }
+  }
+  
+  export interface IBoxProfile {
+    memberSince: string
+    coverPhoto: IBoxImage[]
+    location: string
+    emoji: string
+    job: string
+    employer: string
+    website: string
+    description: string
+    ethereum_proof: {
+      consent_msg: string
+      consent_signature: string
+      linked_did: string
+    }
+    proof_did: string
+    github: string
+    image: IBoxImage[]
+    name: string
+  }
+  
+
+const supportedChains: IChainData[] = [
+  {
+    name: 'Ethereum Mainnet',
+    short_name: 'eth',
+    chain: 'ETH',
+    network: 'mainnet',
+    chain_id: 1,
+    network_id: 1,
+    rpc_url: 'https://mainnet.infura.io/v3/%API_KEY%',
+    native_currency: {
+      symbol: 'ETH',
+      name: 'Ethereum',
+      decimals: '18',
+      contractAddress: '',
+      balance: '',
+    },
+  },
+  {
+    name: 'Ethereum Ropsten',
+    short_name: 'rop',
+    chain: 'ETH',
+    network: 'ropsten',
+    chain_id: 3,
+    network_id: 3,
+    rpc_url: 'https://ropsten.infura.io/v3/%API_KEY%',
+    native_currency: {
+      symbol: 'ETH',
+      name: 'Ethereum',
+      decimals: '18',
+      contractAddress: '',
+      balance: '',
+    },
+  },
+  {
+    name: 'Ethereum Rinkeby',
+    short_name: 'rin',
+    chain: 'ETH',
+    network: 'rinkeby',
+    chain_id: 4,
+    network_id: 4,
+    rpc_url: 'https://rinkeby.infura.io/v3/%API_KEY%',
+    native_currency: {
+      symbol: 'ETH',
+      name: 'Ethereum',
+      decimals: '18',
+      contractAddress: '',
+      balance: '',
+    },
+  },
+  {
+    name: 'Ethereum Görli',
+    short_name: 'gor',
+    chain: 'ETH',
+    network: 'goerli',
+    chain_id: 5,
+    network_id: 5,
+    rpc_url: 'https://goerli.infura.io/v3/%API_KEY%',
+    native_currency: {
+      symbol: 'ETH',
+      name: 'Ethereum',
+      decimals: '18',
+      contractAddress: '',
+      balance: '',
+    },
+  },
+  {
+    name: 'RSK Mainnet',
+    short_name: 'rsk',
+    chain: 'RSK',
+    network: 'mainnet',
+    chain_id: 30,
+    network_id: 30,
+    rpc_url: 'https://public-node.rsk.co',
+    native_currency: {
+      symbol: 'RSK',
+      name: 'RSK',
+      decimals: '18',
+      contractAddress: '',
+      balance: '',
+    },
+  },
+  {
+    name: 'Ethereum Kovan',
+    short_name: 'kov',
+    chain: 'ETH',
+    network: 'kovan',
+    chain_id: 42,
+    network_id: 42,
+    rpc_url: 'https://kovan.infura.io/v3/%API_KEY%',
+    native_currency: {
+      symbol: 'ETH',
+      name: 'Ethereum',
+      decimals: '18',
+      contractAddress: '',
+      balance: '',
+    },
+  },
+  {
+    name: 'Ethereum Classic Mainnet',
+    short_name: 'etc',
+    chain: 'ETC',
+    network: 'mainnet',
+    chain_id: 61,
+    network_id: 1,
+    rpc_url: 'https://ethereumclassic.network',
+    native_currency: {
+      symbol: 'ETH',
+      name: 'Ethereum',
+      decimals: '18',
+      contractAddress: '',
+      balance: '',
+    },
+  },
+  {
+    name: 'POA Network Sokol',
+    short_name: 'poa',
+    chain: 'POA',
+    network: 'sokol',
+    chain_id: 77,
+    network_id: 77,
+    rpc_url: 'https://sokol.poa.network',
+    native_currency: {
+      symbol: 'POA',
+      name: 'POA',
+      decimals: '18',
+      contractAddress: '',
+      balance: '',
+    },
+  },
+  {
+    name: 'POA Network Core',
+    short_name: 'skl',
+    chain: 'POA',
+    network: 'core',
+    chain_id: 99,
+    network_id: 99,
+    rpc_url: 'https://core.poa.network',
+    native_currency: {
+      symbol: 'POA',
+      name: 'POA',
+      decimals: '18',
+      contractAddress: '',
+      balance: '',
+    },
+  },
+  {
+    name: 'xDAI Chain',
+    short_name: 'xdai',
+    chain: 'POA',
+    network: 'dai',
+    chain_id: 100,
+    network_id: 100,
+    rpc_url: 'https://dai.poa.network',
+    native_currency: {
+      symbol: 'xDAI',
+      name: 'xDAI',
+      decimals: '18',
+      contractAddress: '',
+      balance: '',
+    },
+  },
+  {
+    name: 'Callisto Mainnet',
+    short_name: 'clo',
+    chain: 'callisto',
+    network: 'mainnet',
+    chain_id: 820,
+    network_id: 1,
+    rpc_url: 'https://clo-geth.0xinfra.com/',
+    native_currency: {
+      symbol: 'CLO',
+      name: 'CLO',
+      decimals: '18',
+      contractAddress: '',
+      balance: '',
+    },
+  },
+  {
+    name: 'Binance Smart Chain',
+    short_name: 'bsc',
+    chain: 'smartchain',
+    network: 'mainnet',
+    chain_id: 56,
+    network_id: 56,
+    rpc_url: 'https://bsc-dataseed1.defibit.io/',
+    native_currency: {
+      symbol: 'BNB',
+      name: 'BNB',
+      decimals: '18',
+      contractAddress: '',
+      balance: '',
+    },
+  },
+]
+//This is the infura API key
+const InfuraId = '374b34767f8745b9bb2d7d77e97d3454';
+
+export const providerOptions = {
+    walletconnect: {
+      package: WalletConnectProvider, // required
+      options: {
+        infuraId: InfuraId, // required
+      },
+    },
+    'custom-walletlink': {
+      display: {
+        logo: 'https://play-lh.googleusercontent.com/PjoJoG27miSglVBXoXrxBSLveV6e3EeBPpNY55aiUUBM9Q1RCETKCOqdOkX2ZydqVf0',
+        name: 'Coinbase',
+        description: 'Connect to Coinbase Wallet (not Coinbase App)',
+      },
+      options: {
+        appName: 'Coinbase', // Your app name
+        networkUrl: `https://mainnet.infura.io/v3/${InfuraId}`,
+        chainId: 1,
+      },
+      package: WalletLink,
+      connector: async (_: any, options: any) => {
+        const { appName, networkUrl, chainId } = options
+        const walletLink = new WalletLink({
+          appName,
+        })
+        const provider = walletLink.makeWeb3Provider(networkUrl, chainId)
+        await provider.enable()
+        return provider
+      },
+    },
+  }
+  
 
 let web3Modal: Web3Modal;
 if (typeof window !== 'undefined') {
@@ -12,8 +402,6 @@ if (typeof window !== 'undefined') {
             cacheProvider: true,
             providerOptions, // required
           })
-  
-
 }
 
 type StateType = {
@@ -77,7 +465,35 @@ function reducer(state: StateType, action: ActionType): StateType {
   }
   
 }
+export function getChainData(chainId?: number): IChainData {
+    if (!chainId) {
+      return null as unknown as IChainData
+    }
+    const chainData = supportedChains.filter(
+      (chain: any) => chain.chain_id === chainId
+    )[0]
+  
+    if (!chainData) {
+      throw new Error('ChainId missing or not supported, add it to providerOptions')
+    }
+  
 
+  
+    if (
+      chainData.rpc_url.includes('infura.io') &&
+      chainData.rpc_url.includes('%API_KEY%') &&
+      InfuraId
+    ) {
+      const rpcUrl = chainData.rpc_url.replace('%API_KEY%', InfuraId)
+  
+      return {
+        ...chainData,
+        rpc_url: rpcUrl,
+      }
+    }
+  
+    return chainData
+  }
  interface walletProps {
     setIsConnected: (isConnected: boolean) => void
     isConnected: boolean
