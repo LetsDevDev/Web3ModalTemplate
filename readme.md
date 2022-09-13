@@ -1,4 +1,4 @@
-# Web3 Modal setup with Metamask, Coinbase wallet and WalletConnect
+# Web3Modal setup with Metamask, Coinbase wallet and WalletConnect
 
 This is a Next.js Dapp/Web3 template that is ready to go with wallet integration using Web3modal
 
