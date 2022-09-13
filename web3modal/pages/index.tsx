@@ -22,7 +22,7 @@ export const Home : React.FC<homeProps> = ({setConnectWallet,
 
 
 const handleSign = async () => {
-  var signature = await sign(Math.random().toString());
+  var signature = await sign("Message to sign:  RandomNumber = " + Math.random().toString());
   alert("Signature: " + signature);
 }
   return (
