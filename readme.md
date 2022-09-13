@@ -10,5 +10,8 @@ This is a Next.js Dapp/Web3 template that is ready to go with wallet integration
 npm install
 ```
 
+Online Example:
+https://web3-modal-template.vercel.app/
+
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
