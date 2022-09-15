@@ -2,12 +2,7 @@
 
 
 
-interface homeProps {
-  isConnected: boolean
-  sign:(message:string) => string
-  setConnectWallet: (connect: boolean) => void
-  setDisconnectWallet: (disconnect: boolean) => void
-}
+
 
 const styles = {
   container: {
@@ -17,6 +12,16 @@ const styles = {
     margin:"5em",
   },
 };
+
+
+interface homeProps {
+  isConnected: boolean
+  sign:(message:string) => string
+  setConnectWallet: (connect: boolean) => void
+  setDisconnectWallet: (disconnect: boolean) => void
+}
+
+
 export const Home : React.FC<homeProps> = ({setConnectWallet, 
   isConnected, sign, setDisconnectWallet}: homeProps) => {
 

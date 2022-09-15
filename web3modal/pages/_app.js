@@ -3,7 +3,6 @@ import { providers, ethers } from 'ethers'
 import {  useState } from 'react';
 import '../styles/globals.css'
 import Web3Modal from 'web3modal'
-
 import WalletLink from 'walletlink'
 import WalletConnectProvider from '@walletconnect/web3-provider'
 
