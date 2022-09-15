@@ -60,10 +60,8 @@ function MyApp({ Component, pageProps }) {
   const sign = async(toSign) => {
     if(isConnected)
     {
-
     // configure web3, e.g. with web3Modal or in your case WalletConnect
   const web3 = await web3Modal.connect();
-  
   const provider = new providers.Web3Provider(web3);
   const signer = provider.getSigner()
   const address = await signer.getAddress();
